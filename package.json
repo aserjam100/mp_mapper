@@ -4,11 +4,13 @@
   "type": "module",
   "packageManager": "pnpm@11.1.1",
   "scripts": {
-    "db:up": "docker compose up -d --wait",
+    "db:up": "docker compose up -d --wait db",
     "db:down": "docker compose down",
     "db:generate": "pnpm --filter @mapper/api db:generate",
     "db:migrate": "pnpm --filter @mapper/api db:migrate",
     "ingest": "pnpm --filter @mapper/api ingest",
+    "embed": "pnpm --filter @mapper/api embed",
+    "match": "pnpm --filter @mapper/api match",
     "dev": "pnpm --parallel --filter @mapper/api --filter @mapper/web dev",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"

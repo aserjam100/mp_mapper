@@ -10,9 +10,12 @@
     "ingest": "tsx --env-file=../../.env src/ingest/cli.ts",
     "fixtures": "tsx scripts/make-fixtures.ts",
     "test": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "embed": "tsx --env-file=../../.env src/matching/cli.ts embed",
+    "match": "tsx --env-file=../../.env src/matching/cli.ts match"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@hono/node-server": "^1.14.0",
     "@mapper/shared": "workspace:*",
     "drizzle-orm": "^0.44.0",

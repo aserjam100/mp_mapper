@@ -5,8 +5,11 @@ import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 import { AboutPage } from './pages/About';
 import { CoveragePage } from './pages/Coverage';
 import { CurriculaPage } from './pages/Curricula';
+import { NewCurriculumPage } from './pages/NewCurriculum';
 import { ObjectivePage } from './pages/Objective';
 import { ProductsPage } from './pages/Products';
+import { RunPage } from './pages/Run';
+import { RunsPage } from './pages/Runs';
 import './styles.css';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } } });
@@ -21,6 +24,8 @@ function App() {
             Curricula
           </NavLink>
           <NavLink to="/products">Product browser</NavLink>
+          <NavLink to="/new">New curriculum</NavLink>
+          <NavLink to="/runs">Matching runs</NavLink>
           <NavLink to="/about">How to use</NavLink>
         </nav>
       </header>
@@ -30,6 +35,9 @@ function App() {
           <Route path="/curricula/:id" element={<CoveragePage />} />
           <Route path="/objectives/:id" element={<ObjectivePage />} />
           <Route path="/products" element={<ProductsPage />} />
+          <Route path="/new" element={<NewCurriculumPage />} />
+          <Route path="/runs" element={<RunsPage />} />
+          <Route path="/runs/:id" element={<RunPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<div className="empty">Page not found.</div>} />
         </Routes>

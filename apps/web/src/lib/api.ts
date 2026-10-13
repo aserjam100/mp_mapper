@@ -167,3 +167,147 @@ export const useLocation = (id: string | null) =>
   useQuery({ queryKey: ['location', id], queryFn: () => get<LocationDetail>(`/locations/${id}`), enabled: !!id });
 
 export const EDITION_NAMES: Record<string, string> = { PINE: 'PINE', AU2: 'PR1ME AU', PH_DPA: 'PR1ME PH DPA' };
+
+// ---------------------------------------------------------------- Phase 2: upload and matching runs
+
+export async function send<T>(method: 'POST', path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`/api${path}`, {
+    method,
+    headers: body instanceof FormData ? undefined : { 'content-type': 'application/json' },
+    body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error ?? `${res.status}`), { data });
+  return data as T;
+}
+
+export interface SheetPreview {
+  name: string;
+  rowCount: number;
+  rows: string[][];
+}
+export interface UploadResult {
+  uploadId: string;
+  fileName: string;
+  sheets: SheetPreview[];
+}
+export interface ColumnMap {
+  grade: number;
+  text: number;
+  strand: number | null;
+  subStrand: number | null;
+  code: number | null;
+}
+export interface ParsedObjective {
+  row: number;
+  code: string | null;
+  gradeLabel: string;
+  gradeNum: number | null;
+  strand: string | null;
+  subStrand: string | null;
+  text: string;
+}
+export interface UploadPreview {
+  count: number;
+  byGrade: Record<string, number>;
+  objectives: ParsedObjective[];
+  skipped: { row: number; reason: string }[];
+  skippedCount: number;
+  warnings: string[];
+}
+
+export interface MatchingStatus {
+  embedding: { label: string; provider: string; ollama: boolean | null; missing: { product_missing: number; curriculum_missing: number } };
+  judge: { model: string; effort: string; hasKey: boolean };
+  consent: { at: string; by: string } | null;
+}
+
+export interface Tally {
+  objectives: number;
+  bestFound: number;
+  top3: number;
+  anywhere: number;
+  keyInWindow: number;
+  rated: number;
+  ratingAgree: number;
+}
+export interface AccuracyReport {
+  editions: string[];
+  judged: boolean;
+  total: Tally & { noKey: number };
+  confusion: Record<string, Record<string, number>>;
+  byGrade: Record<string, Tally>;
+  byStrand: Record<string, Tally>;
+}
+
+export type RunStatus = 'retrieving' | 'ready' | 'judging' | 'finishing' | 'done' | 'failed';
+export interface RunRow {
+  id: string;
+  mode: 'propose' | 'accuracy';
+  status: RunStatus;
+  params: { editions: string[]; gradeWindow: number };
+  embed_model: string;
+  llm_model: string;
+  est_cost: string | null;
+  actual_cost: string | null;
+  started_at: string;
+  finished_at: string | null;
+  progress: { stage?: string; done?: number; total?: number; usd?: number; errors?: number };
+  error: string | null;
+  curriculum_id: string;
+  curriculum_code: string;
+  curriculum_name: string;
+}
+export interface RunDetail {
+  run: RunRow & {
+    report: {
+      estimate?: { calls: number; cachedCalls: number; usd: number; usdRemaining: number; model: string; inputTokens: number; outputTokens: number };
+      judged?: boolean;
+      written?: Record<string, number>;
+      usd?: number;
+      calls?: number;
+      cachedCalls?: number;
+      errors?: number;
+      accuracy?: AccuracyReport;
+    };
+  };
+  summary: { edition: string; rating: string; n: number }[];
+  consent: { at: string } | null;
+  hasKey: boolean;
+}
+export interface RunCell {
+  rating: Rating | null;
+  note: string | null;
+  judged: boolean;
+  error: string | null;
+  mappingId: string | null;
+  chosen: { label: string; locationId: string; scopeNotes: string[]; reuse: boolean; bullets: string[] } | null;
+  candidates: { key: string; label: string; locationId: string; type: string; gradeNum: number; judge: string | null; sources: string[]; scopeNotes: string[] }[];
+}
+export interface RunResult {
+  id: string;
+  code: string | null;
+  grade_label: string;
+  strand: string | null;
+  text: string;
+  cells: Record<string, RunCell>;
+}
+
+const ACTIVE: RunStatus[] = ['retrieving', 'judging', 'finishing'];
+export const useMatchingStatus = () => useQuery({ queryKey: ['matching-status'], queryFn: () => get<MatchingStatus>('/matching/status'), staleTime: 5_000 });
+export const useRuns = () =>
+  useQuery({
+    queryKey: ['runs'],
+    queryFn: () => get<RunRow[]>('/runs'),
+    refetchInterval: (q) => (q.state.data?.some((r) => ACTIVE.includes(r.status)) ? 2000 : false),
+    staleTime: 0,
+  });
+export const useRun = (id: string) =>
+  useQuery({
+    queryKey: ['run', id],
+    queryFn: () => get<RunDetail>(`/runs/${id}`),
+    refetchInterval: (q) => (q.state.data && ACTIVE.includes(q.state.data.run.status) ? 1500 : false),
+    staleTime: 0,
+  });
+export const useRunResults = (id: string, enabled: boolean) =>
+  useQuery({ queryKey: ['run-results', id], queryFn: () => get<RunResult[]>(`/runs/${id}/results`), enabled, staleTime: 0 });

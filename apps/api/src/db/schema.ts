@@ -65,6 +65,7 @@ export const curriculumObjectives = pgTable(
     index('cobj_curriculum_idx').on(t.curriculumId, t.sortKey),
     index('cobj_code_idx').on(t.code),
     index('cobj_tsv_idx').using('gin', t.tsv),
+    index('cobj_embedding_idx').using('hnsw', t.embedding.op('vector_cosine_ops')),
   ],
 );
 
@@ -135,7 +136,11 @@ export const productObjectives = pgTable(
     embedding: vector('embedding', { dimensions: EMBED_DIM }),
     status: recordStatusEnum('status').notNull().default('active'),
   },
-  (t) => [index('pobj_content_idx').on(t.contentItemId), index('pobj_tsv_idx').using('gin', t.tsv)],
+  (t) => [
+    index('pobj_content_idx').on(t.contentItemId),
+    index('pobj_tsv_idx').using('gin', t.tsv),
+    index('pobj_embedding_idx').using('hnsw', t.embedding.op('vector_cosine_ops')),
+  ],
 );
 
 /** Which objectives a location delivers. A PH activity points at the PINE bullet it reuses. */
@@ -164,6 +169,8 @@ export const importBatches = pgTable('import_batches', {
 export const matchingRuns = pgTable('matching_runs', {
   id: uuid('id').primaryKey().defaultRandom(),
   curriculumId: uuid('curriculum_id').notNull().references(() => curricula.id),
+  /** propose = write proposed mappings; accuracy = hide this curriculum's approved mappings, write results only. */
+  mode: text('mode').notNull().default('propose'),
   params: jsonb('params').$type<Record<string, unknown>>().notNull().default({}),
   embedModel: text('embed_model'),
   llmModel: text('llm_model'),
@@ -172,7 +179,38 @@ export const matchingRuns = pgTable('matching_runs', {
   actualCost: numeric('actual_cost'),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
+  progress: jsonb('progress').$type<Record<string, unknown>>().notNull().default({}),
+  error: text('error'),
   report: jsonb('report').$type<Record<string, unknown>>().notNull().default({}),
+});
+
+/** One row per curriculum objective x edition per run: the candidates found and the judge's decision. */
+export const matchResults = pgTable(
+  'match_results',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    runId: uuid('run_id').notNull().references(() => matchingRuns.id, { onDelete: 'cascade' }),
+    curriculumObjectiveId: uuid('curriculum_objective_id').notNull().references(() => curriculumObjectives.id),
+    editionId: uuid('edition_id').notNull().references(() => editions.id),
+    /** Ranked candidates: location, best bullets, retrieval source, rule notes. */
+    candidates: jsonb('candidates').$type<unknown[]>().notNull().default([]),
+    chosenLocationId: uuid('chosen_location_id').references(() => productLocations.id),
+    chosenProductObjectiveId: uuid('chosen_product_objective_id').references(() => productObjectives.id),
+    rating: ratingEnum('rating'),
+    note: text('note'),
+    judged: boolean('judged').notNull().default(false),
+    judgeError: text('judge_error'),
+    mappingId: uuid('mapping_id').references(() => mappings.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('mr_run_obj_ed_uq').on(t.runId, t.curriculumObjectiveId, t.editionId)],
+);
+
+/** Small key/value store: embedding model in use, consent to send product content to external APIs. */
+export const appSettings = pgTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 /** Identity of a link. Its state lives in append-only mapping_versions. */

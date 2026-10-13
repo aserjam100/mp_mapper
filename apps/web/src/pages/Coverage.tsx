@@ -1,7 +1,36 @@
 import { useMemo } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Loading, RatingPill, StatusText, Tags } from '../components/bits';
-import { EDITION_NAMES, useCoverage } from '../lib/api';
+import { EDITION_NAMES, useCoverage, type CurriculumObjective } from '../lib/api';
+
+const RATING_TEXT: Record<string, string> = { covered: 'Covered', check: 'Check', not_found: 'Not found' };
+
+/** CSV of the objectives on screen: one row per objective, a block of columns per edition. */
+function downloadCsv(fileName: string, objectives: CurriculumObjective[], editions: string[]) {
+  const header = ['Code', 'Grade', 'Track', 'Strand', 'Sub-strand', 'Topic', 'Objective'];
+  for (const e of editions) {
+    const n = EDITION_NAMES[e] ?? e;
+    header.push(`${n} rating`, `${n} status`, `${n} best match`, `${n} scope note`, `${n} related note`);
+  }
+  const rows = objectives.map((o) => {
+    const row: (string | null | undefined)[] = [o.code, o.grade_label, o.track, o.strand, o.sub_strand, o.topic, o.text];
+    for (const e of editions) {
+      const c = o.cells[e];
+      row.push(c ? RATING_TEXT[c.rating] : 'No mapping', c?.status, c?.location, c?.scopeNote, c?.relatedNote);
+    }
+    return row;
+  });
+  const esc = (v: string | null | undefined) => {
+    const t = v ?? '';
+    return /[",\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+  };
+  // BOM so Excel opens the file as UTF-8 (₱, curly quotes)
+  const csv = '\uFEFF' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = Object.assign(document.createElement('a'), { href: url, download: fileName });
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const FILTERS = ['grade', 'track', 'strand', 'edition', 'rating', 'status', 'q'] as const;
 
@@ -97,6 +126,13 @@ export function CoveragePage() {
         <span className="muted small">
           {rows.length} of {data.objectives.length} objectives
         </span>
+        <button
+          onClick={() => downloadCsv(`${data.curriculum.code}-coverage.csv`, rows, editions)}
+          disabled={!rows.length}
+          title="Downloads the objectives shown, with the current filters"
+        >
+          Export CSV
+        </button>
       </div>
       <table>
         <thead>

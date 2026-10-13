@@ -5,8 +5,8 @@ Last updated 2026-10-12. The brief is `CLAUDE_CODE_PROMPT.md`. Work proceeds in 
 | Phase | State |
 |---|---|
 | 0: inspect and plan | Done: `docs/data-findings.md`, whose section 8 records the decisions |
-| 1: ingest and browse | **Done; waiting for the user to approve Phase 2** |
-| 2: matching | Not started |
+| 1: ingest and browse | Done |
+| 2: matching | **Built 2026-10-12. Judge not yet run (no API key, no consent). Waiting for the user's checkpoint review** |
 | 3: review and reupload | Not started |
 
 ## Post-Phase-1 UI changes (2026-10-12, made at the user's request)
@@ -39,7 +39,16 @@ Last updated 2026-10-12. The brief is `CLAUDE_CODE_PROMPT.md`. Work proceeds in 
 - A PH objective counts as the same as a PINE bullet when Dice similarity ≥ 0.85; below that it is stored as a rewording (`reworded_of`).
 - Best-match grade distance uses the edition's own grade.
 
-## Phase 2 to-do (from the brief)
+## Phase 2 as built (2026-10-12)
+- Code in `apps/api/src/matching/`, routes in `apps/api/src/routes/match.ts`, pages `/new`, `/runs` and `/runs/:id`. Migration `0004_matching` adds `match_results`, `app_settings`, run `mode`/`progress`/`error` columns and HNSW indexes.
+- Ollama was installed but not running. It was started with `ollama serve` (not as a brew service) and `nomic-embed-text` was pulled. After a reboot, run `ollama serve` again.
+- All 5,394 product objectives and 815 curriculum objectives are embedded (AC9 stubs are skipped).
+- Retrieval tuning: grade penalty 0.3 per grade (tested 0, 0.5 and 0.7), 10 candidates per edition, teaching ×1 vs other types ×0.85.
+- PH accuracy, retrieval only (`docs/accuracy-PH-DEPED-retrieval.md`): best match 53%, top 3 72%, in list 86% (445 objectives with a key).
+- **The judge has not run.** `ANTHROPIC_API_KEY` is empty and no consent is recorded. Estimate for the PH test: 521 calls, about $4 with claude-sonnet-5-5 at effort low.
+- Postgres `jsonb` parameters: postgres.js `sql.json()` fails on prepared jsonb params here, so pass `JSON.stringify(x)` with a `::jsonb` cast.
+
+## Phase 2 to-do (from the brief, kept for reference)
 - Upload page with column mapping (grade / strand / code / text) and a preview.
 - Embeddings via Ollama `nomic-embed-text`, with an API provider as an option. Ollama was **not running** on this machine at the end of Phase 1.
 - Retrieve candidates **per edition**: pgvector + full-text search, a grade window, and exclusion of review/assessment.
@@ -55,3 +64,7 @@ Last updated 2026-10-12. The brief is `CLAUDE_CODE_PROMPT.md`. Work proceeds in 
 - SG crosswalk PH Grade 3 row 25 is mapped through the PH-wording fallback and is flagged in the report.
 - The SG crosswalk file can't be opened by ExcelJS (absolute paths inside the file), so it is read with SheetJS through `loadGrids`.
 - No git commits yet. The user commits and pushes themselves; never run git commit or push, just give them the commands.
+
+## Docker (2026-10-13)
+
+`docker compose up` runs the whole app (Postgres, Ollama, API + built web) on http://localhost:8080 for testers; see README "Run it on a Mac". `data/source` is now committed (only `data/uploads/` is ignored). `pnpm db:up` starts only the db service. Tested from a clean copy: first start loads data and embeds 6,203 objectives; PH retrieval accuracy 51% / 73% / 85% (native Ollama 53 / 72 / 86); restart takes about 7 s.

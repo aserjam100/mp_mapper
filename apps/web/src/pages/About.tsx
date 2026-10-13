@@ -53,7 +53,7 @@ export function AboutPage() {
           <Link to="/">Curricula</Link>: an overview of each curriculum and how much of it is mapped.
         </li>
         <li>
-          <b>Coverage</b> (click a curriculum): the grid of objectives × products. Use the filters at the top to narrow it down.
+          <b>Coverage</b> (click a curriculum): the grid of objectives × products. Use the filters at the top to narrow it down, and <b>Export CSV</b> to download what you see.
         </li>
         <li>
           <b>Objective</b> (click an objective): all the lessons it maps to, plus matching codes from other curricula.
@@ -61,13 +61,20 @@ export function AboutPage() {
         <li>
           <Link to="/products">Product browser</Link>: start from a book and lesson instead, and see which curriculum codes it covers.
         </li>
+        <li>
+          <Link to="/new">New curriculum</Link>: upload a spreadsheet of objectives and say which column is which.
+        </li>
+        <li>
+          <Link to="/runs">Matching runs</Link>: find the best lesson for every objective. The first step is free. The optional AI check shows its cost before it starts.
+        </li>
       </ul>
 
       <h2>Good to know</h2>
       <ul>
         <li>The data comes from the four Excel files in <span className="mono">data/source/</span>. The files themselves are never changed.</li>
         <li>PR1ME PH reuses many PINE lessons, so one mapping can count for both products.</li>
-        <li>Australian objectives show codes only for now. Their descriptions haven’t been imported yet.</li>
+        <li>Australian objectives show codes only for now. Their descriptions haven’t been imported yet, so they can’t be matched.</li>
+        <li>Matching suggestions are always <span className="s-proposed">proposed</span>. They never replace approved mappings.</li>
       </ul>
     </div>
   );

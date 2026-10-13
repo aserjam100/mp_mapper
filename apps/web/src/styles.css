@@ -80,7 +80,7 @@ tbody tr:hover { background: var(--surface-2); }
 .bar .not_found { background: var(--notfound); }
 
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
-select, input[type='search'] {
+select, input[type='search'], input[type='number'], input:not([type]) {
   background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font: inherit;
 }
 input[type='search'] { min-width: 240px; }
@@ -88,6 +88,10 @@ button {
   background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer;
 }
 button:hover { background: var(--surface-2); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.primary:hover:not(:disabled) { background: #166fe5; }
+label { display: inline-flex; gap: 4px; align-items: center; }
 
 .split { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: 16px; align-items: start; }
 .tree { max-height: calc(100vh - 140px); overflow: auto; }

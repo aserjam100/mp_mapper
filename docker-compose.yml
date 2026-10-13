@@ -1,3 +1,5 @@
+# `docker compose up` runs the whole app: http://localhost:8080
+# `pnpm db:up` (local development) starts only the database.
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -15,5 +17,48 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  # downloads the embedding model once (kept in the ollama-models volume), then exits
+  ollama-pull:
+    image: ollama/ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "nomic-embed-text"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://mapper:mapper@db:5432/mapper
+      OLLAMA_URL: http://ollama:11434
+      API_PORT: 8080
+      SOURCE_DIR: data/source
+    volumes:
+      - uploads:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+
 volumes:
   mapper-pgdata:
+  ollama-models:
+  uploads:
