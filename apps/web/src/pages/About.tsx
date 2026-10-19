@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { RatingPill } from '../components/bits';
+import { STATIC_SITE } from '../lib/api';
 
 export function AboutPage() {
   return (
@@ -61,16 +62,21 @@ export function AboutPage() {
         <li>
           <Link to="/products">Product browser</Link>: start from a book and lesson instead, and see which curriculum codes it covers.
         </li>
-        <li>
-          <Link to="/new">New curriculum</Link>: upload a spreadsheet of objectives and say which column is which.
-        </li>
-        <li>
-          <Link to="/runs">Matching runs</Link>: find the best lesson for every objective. The first step is free. The optional AI check shows its cost before it starts.
-        </li>
+        {!STATIC_SITE && (
+          <>
+            <li>
+              <Link to="/new">New curriculum</Link>: upload a spreadsheet of objectives and say which column is which.
+            </li>
+            <li>
+              <Link to="/runs">Matching runs</Link>: find the best lesson for every objective. The first step is free. The optional AI check shows its cost before it starts.
+            </li>
+          </>
+        )}
       </ul>
 
       <h2>Good to know</h2>
       <ul>
+        {STATIC_SITE && <li>This site is a read-only copy. It is updated by hand; the date at the top shows when. Send corrections to the mapping team.</li>}
         <li>The data comes from the four Excel files in <span className="mono">data/source/</span>. The files themselves are never changed.</li>
         <li>PR1ME PH reuses many PINE lessons, so one mapping can count for both products.</li>
         <li>Australian objectives show codes only for now. Their descriptions haven’t been imported yet, so they can’t be matched.</li>

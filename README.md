@@ -80,6 +80,10 @@ Your changes (reviewed mappings, uploaded curricula, runs) are kept between star
 - **"port is already allocated"**: another program is using port 8080 or 5433. Quit it, or restart the Mac, then try again.
 - **Anything else**: send the last 50 lines of `docker compose logs app`.
 
+## Read-only site for the team
+
+`pnpm site:build` saves what the Curricula, Coverage, Objective and Product browser pages show as JSON files (`apps/api/scripts/snapshot.ts`) and builds the web app in read-only mode (`vite build --mode static`) into `apps/web/dist-static/`. That build has no upload or matching pages and reads the saved files instead of the API. `pnpm site:preview` shows it at http://localhost:4173, and `pnpm site:publish` uploads it to Cloudflare Pages, where Cloudflare Access lets in only the listed email addresses. Setup and access list: `docs/cloudflare-setup.md`.
+
 ## Development setup
 
 Requirements: Node 22+, pnpm 10+, Docker, Ollama.

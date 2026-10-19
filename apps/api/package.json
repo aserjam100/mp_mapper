@@ -12,7 +12,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p .",
     "embed": "tsx --env-file=../../.env src/matching/cli.ts embed",
-    "match": "tsx --env-file=../../.env src/matching/cli.ts match"
+    "match": "tsx --env-file=../../.env src/matching/cli.ts match",
+    "snapshot": "tsx --env-file=../../.env scripts/snapshot.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

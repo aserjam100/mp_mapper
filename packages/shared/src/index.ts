@@ -3,3 +3,4 @@ export * from './ids.js';
 export * from './types.js';
 export * from './similarity.js';
 export * from './grades.js';
+export * from './snapshot.js';

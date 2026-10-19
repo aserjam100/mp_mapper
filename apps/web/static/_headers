@@ -1,0 +1,10 @@
+# Cloudflare Pages headers for the read-only site (pnpm site:build). Cloudflare Access does the sign-in.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+
+# check for a newer copy of the data on every visit, and keep it out of shared caches
+/data/*
+  Cache-Control: private, no-cache

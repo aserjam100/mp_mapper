@@ -1,10 +1,35 @@
 import { useQuery } from '@tanstack/react-query';
+// direct path keeps the rest of @mapper/shared (uuid, zod) out of the bundle
+import { snapshotFile } from '@mapper/shared/src/snapshot';
+
+/** The read-only site (`vite build --mode static`) reads the files saved by `pnpm site:build` instead of the API. */
+export const STATIC_SITE = import.meta.env.MODE === 'static';
 
 async function get<T>(path: string): Promise<T> {
+  if (STATIC_SITE) return getSnapshot<T>(path);
   const res = await fetch(`/api${path}`);
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json() as Promise<T>;
 }
+
+async function getSnapshot<T>(path: string): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(snapshotFile(path));
+  } catch {
+    // Cloudflare Access redirects to its sign-in page when the session has expired, and fetch can't follow it
+    throw new Error('Could not load the data. Your sign-in may have expired: reload the page.');
+  }
+  // a missing file comes back as the site's index.html
+  if (!res.ok || !res.headers.get('content-type')?.includes('json')) throw new Error('Not found in this copy of the data.');
+  return res.json() as Promise<T>;
+}
+
+export interface SnapshotMeta {
+  at: string;
+  commit: string | null;
+}
+export const useSnapshotMeta = () => useQuery({ queryKey: ['meta'], queryFn: () => get<SnapshotMeta>('/meta'), enabled: STATIC_SITE });
 
 export type Rating = 'covered' | 'check' | 'not_found';
 export type Status = 'proposed' | 'approved' | 'rejected';

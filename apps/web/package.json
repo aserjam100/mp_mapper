@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p . && vite build",
+    "build:static": "tsc -p . && vite build --mode static",
+    "preview:static": "vite preview --mode static",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p ."
   },

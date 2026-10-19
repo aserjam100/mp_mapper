@@ -68,3 +68,10 @@ Last updated 2026-10-12. The brief is `CLAUDE_CODE_PROMPT.md`. Work proceeds in 
 ## Docker (2026-10-13)
 
 `docker compose up` runs the whole app (Postgres, Ollama, API + built web) on http://localhost:8080 for testers; see README "Run it on a Mac". `data/source` is now committed (only `data/uploads/` is ignored). `pnpm db:up` starts only the db service. Tested from a clean copy: first start loads data and embeds 6,203 objectives; PH retrieval accuracy 51% / 73% / 85% (native Ollama 53 / 72 / 86); restart takes about 7 s.
+
+## Read-only team site (2026-10-19)
+
+The full app stays local. `pnpm site:build` builds a read-only copy (Curricula, Coverage with CSV export, Objective with version history, Product browser, How to use; proposed mappings included) into `apps/web/dist-static/`, and `pnpm site:publish` uploads it to Cloudflare Pages at the free `pr1me-mapper.pages.dev` address. Cloudflare Access with email one-time codes restricts it to a list of addresses the user supplies (kept in Cloudflare, not in the repo). Steps: `docs/cloudflare-setup.md`.
+- First build: 7,158 data files, 109 MB uncompressed (objectives with 100+ mappings per edition are up to 1.7 MB each), about a minute. Every link the pages can make has its file; the script fails otherwise.
+- `workerd` (wrangler's local runtime) has its build script skipped in `pnpm-workspace.yaml`; uploading static files does not need it.
+- The user checked the read-only pages in the local preview on 2026-10-19 and they work. Not yet done: Cloudflare account, Access setup and first publish (the user's steps).

@@ -3,3 +3,5 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  # wrangler's local runtime; `wrangler pages deploy` (pnpm site:publish) doesn't need it
+  workerd: false

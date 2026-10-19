@@ -6,3 +6,4 @@ dist
 apps/web/dist
 # source spreadsheets in data/source are committed; uploads made in the app are not
 data/uploads/
+apps/web/dist-static

@@ -13,6 +13,12 @@
     "match": "pnpm --filter @mapper/api match",
     "dev": "pnpm --parallel --filter @mapper/api --filter @mapper/web dev",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "site:build": "pnpm --filter @mapper/web build:static && pnpm --filter @mapper/api snapshot",
+    "site:preview": "pnpm --filter @mapper/web preview:static",
+    "site:publish": "wrangler pages deploy apps/web/dist-static --project-name pr1me-mapper --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
   }
 }

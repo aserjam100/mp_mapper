@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
+import { STATIC_SITE, useSnapshotMeta } from './lib/api';
 import { AboutPage } from './pages/About';
 import { CoveragePage } from './pages/Coverage';
 import { CurriculaPage } from './pages/Curricula';
@@ -14,6 +15,14 @@ import './styles.css';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } } });
 
+/** Read-only site: when the data was saved. */
+function DataAsOf() {
+  const q = useSnapshotMeta();
+  if (!q.data) return null;
+  const at = new Date(q.data.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return <span className="as-of">Read-only copy · data as of {at}</span>;
+}
+
 function App() {
   return (
     <>
@@ -24,10 +33,11 @@ function App() {
             Curricula
           </NavLink>
           <NavLink to="/products">Product browser</NavLink>
-          <NavLink to="/new">New curriculum</NavLink>
-          <NavLink to="/runs">Matching runs</NavLink>
+          {!STATIC_SITE && <NavLink to="/new">New curriculum</NavLink>}
+          {!STATIC_SITE && <NavLink to="/runs">Matching runs</NavLink>}
           <NavLink to="/about">How to use</NavLink>
         </nav>
+        {STATIC_SITE && <DataAsOf />}
       </header>
       <main>
         <Routes>
@@ -35,9 +45,9 @@ function App() {
           <Route path="/curricula/:id" element={<CoveragePage />} />
           <Route path="/objectives/:id" element={<ObjectivePage />} />
           <Route path="/products" element={<ProductsPage />} />
-          <Route path="/new" element={<NewCurriculumPage />} />
-          <Route path="/runs" element={<RunsPage />} />
-          <Route path="/runs/:id" element={<RunPage />} />
+          {!STATIC_SITE && <Route path="/new" element={<NewCurriculumPage />} />}
+          {!STATIC_SITE && <Route path="/runs" element={<RunsPage />} />}
+          {!STATIC_SITE && <Route path="/runs/:id" element={<RunPage />} />}
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<div className="empty">Page not found.</div>} />
         </Routes>

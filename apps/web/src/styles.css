@@ -46,6 +46,7 @@ h3 { font-size: 15px; margin: 16px 0 6px; }
 .topbar nav a { color: rgba(255, 255, 255, 0.8); }
 .topbar nav a:hover { color: #fff; }
 .topbar nav a.active { color: #fff; font-weight: 600; text-decoration: underline; text-underline-offset: 6px; }
+.topbar .as-of { margin-left: auto; font-size: 13px; color: rgba(255, 255, 255, 0.85); }
 main { padding: 20px; max-width: 1600px; margin: 0 auto; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
