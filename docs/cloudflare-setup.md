@@ -26,17 +26,21 @@ public for a while.
    team name and the **Free** plan (up to 50 users; Cloudflare may ask for payment details even for the
    free plan).
 
-4. **Turn on email codes.** Zero Trust → **Settings → Authentication → Login methods → Add new →
-   One-time PIN**.
+4. **Turn on email codes.** Zero Trust → **Integrations → Identity providers** → add a new provider →
+   **One-time PIN**.
 
-5. **Protect the site.** Zero Trust → **Access → Applications → Add an application → Self-hosted**:
-   - Name: `PR1ME Curriculum Mapper`. Session duration: `1 week`.
-   - Public hostnames: add both `pr1me-mapper.pages.dev` and `*.pr1me-mapper.pages.dev`. The second
-     covers the preview address each upload gets; without it, those copies are open to anyone.
-   - Login methods: **One-time PIN** only.
-   - Policy: name `Mapper team`, action **Allow**, include **Emails**, and add each address on the
-     list. (Never use "Everyone" or a rule that only checks the domain.)
-   - Save.
+5. **Protect the site.** A `pages.dev` address needs two Access applications, both started from the
+   Pages project ([Cloudflare's steps](https://developers.cloudflare.com/pages/platform/known-issues/)):
+   - **Workers & Pages → pr1me-mapper → Settings → General → Preview access → Restrict previews.** This creates an
+     application for the preview copies (`*.pr1me-mapper.pages.dev`).
+   - Click **Manage** on it, then **Configure**. Under **Public hostname**, delete the `*` in
+     **Subdomain** so it covers `pr1me-mapper.pages.dev`, rename it (for example `PR1ME Mapper (main)`)
+     and save.
+   - Back in the Pages project settings, click **Restrict previews** again to recreate the preview
+     application. Zero Trust → **Access controls → Applications** now lists both.
+   - On **each** application: a policy with action **Allow** and include **Emails** listing each
+     address (never "Everyone" or a domain-only rule), login method **One-time PIN**, session duration
+     `1 week`.
 
 6. **Publish:**
    ```bash
@@ -66,7 +70,7 @@ The top bar of the site shows the date of the data.
 
 ## Adding or removing people
 
-Edit the `Mapper team` policy (Zero Trust → Access → Applications → PR1ME Curriculum Mapper →
-Policies). No republish is needed. Someone removed from the list keeps access until their session ends
+Edit the policy on **both** applications (Zero Trust → Access controls → Applications →
+Configure → Policies). No republish is needed. Someone removed from the list keeps access until their session ends
 (up to the session duration); to cut them off at once, revoke their session under Zero Trust → **My
 Team → Users**.
